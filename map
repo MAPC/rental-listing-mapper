@@ -35,9 +35,9 @@ df = pd.read_sql_table('listings', engine)
 df.rename(columns={'posting_date': 'post_at'}, inplace=True)
 
 df['payload'] = df['payload'].fillna('{"lat": 0, "lng": 0}').astype(str).apply(json.loads)
-df['latitude'] = df['payload'].apply(longmap)
-df['longitude'] = df['payload'].apply(latmap)
-df = df[df['longitude'] > 37]
+df['latitude'] = df['payload'].apply(latmap)
+df['longitude'] = df['payload'].apply(longmap)
+df = df[df['latitude'] > 37]
 
 mapped = df[['id', 'ask', 'bedrooms', 'title', 'address', 'post_at', 'created_at', 'updated_at', 'source_id', 'survey_id', 'latitude', 'longitude']]
 
