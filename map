@@ -38,6 +38,6 @@ df['payload'] = df['payload'].fillna('{"lat": 0, "lng": 0}').astype(str).apply(j
 df['latitude'] = df['payload'].apply(latmap)
 df['longitude'] = df['payload'].apply(longmap)
 
-mapped = df[['id', 'ask', 'bedrooms', 'title', 'address', 'post_at', 'created_at', 'updated_at', 'source_id', 'survey_id', 'latitude', 'longitude']]
+mapped = df[['id', 'ask', 'bedrooms', 'title', 'address', 'post_at', 'created_at', 'updated_at', 'source_id', 'survey_id', 'longitude', 'latitude']]
 
 mapped.to_csv(path.join(environ['OUT_FILE_PATH'], environ['OUT_FILE_NAME']), index=False, header=False)
