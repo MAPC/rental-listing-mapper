@@ -9,15 +9,15 @@ from dotenv import load_dotenv, find_dotenv
 
 def longmap(record):
     if 'lng' in record:
-        return record['lng']
+        return float(record['lng'])
     else:
-        return record['Longitude']
+        return float(record['Longitude'])
 
 def latmap(record):
     if 'lat' in record:
-        return record['lat']
+        return float(record['lat'])
     else:
-        return record['Latitude']
+        return float(record['Latitude'])
 
 
 dtypes = {
