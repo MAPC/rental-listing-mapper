@@ -34,7 +34,7 @@ engine = create_engine('postgresql://{}:{}@{}:{}/{}'.format(environ['DB_USER'], 
 df = pd.read_sql_table('listings', engine)
 df.rename(columns={'posting_date': 'post_at'}, inplace=True)
 
-df['payload'] = df['payload'].fillna('{"lat": 0, "lng": 0}').astype(str).apply(json.loads)
+df['payload'] = df['payload'].dropna().astype(str).apply(json.loads)
 df['longitude'] = df['payload'].apply(latmap)
 df = df[df['longitude'] > 37]
 df['latitude'] = df['payload'].apply(longmap)
