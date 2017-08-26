@@ -35,6 +35,8 @@ df = pd.read_sql_table('listings', engine)
 df.rename(columns={'posting_date': 'post_at'}, inplace=True)
 
 df = df.dropna(subset=['payload'])
+df['payload'] = df['payload'].astype(str).apply(json.loads)
+df['longitude'] = df['payload'].apply(latmap)
 df = df[df['longitude'] > 37]
 df['latitude'] = df['payload'].apply(longmap)
 
