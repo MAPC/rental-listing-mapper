@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
 import json
+import sqlalchemy
 import pandas as pd
 from os import environ, path
-from sqlalchemy import create_engine
-from dotenv import load_dotenv, find_dotenv
 
 
 def longmap(record):
@@ -28,11 +27,8 @@ dtypes = {
 }
 
 
-load_dotenv(find_dotenv())
-
-engine = create_engine('postgresql://{}:{}@{}:{}/{}'.format(environ['DB_USER'], environ['DB_PASSWORD'], environ['DB_HOST'], environ['DB_PORT'], environ['DB_NAME']))
-#df = pd.read_sql_table('listings', engine)
-df = pd.read_sql("SELECT * FROM listings where last_seen like '2017-08%' or last_seen like '2017-07%'")
+engine = sqlalchemy.create_engine('postgresql://{}:{}@{}:{}/{}'.format(environ['DB_USER'], environ['DB_PASSWORD'], environ['DB_HOST'], environ['DB_PORT'], environ['DB_NAME']))
+df = pd.read_sql_query(sqlalchemy.text("SELECT * FROM listings where last_seen like '2017-08%' or last_seen like '2017-07%'"), engine)
 df.rename(columns={'posting_date': 'post_at'}, inplace=True)
 
 df = df.dropna(subset=['payload'])
@@ -41,6 +37,6 @@ df['longitude'] = df['payload'].apply(latmap)
 df = df[df['longitude'] > 37]
 df['latitude'] = df['payload'].apply(longmap)
 
-mapped = df[['id', 'ask', 'bedrooms', 'title', 'address', 'post_at', 'created_at', 'updated_at', 'source_id', 'survey_id', 'latitude', 'longitude']]
+mapped = df[['uid', 'ask', 'bedrooms', 'title', 'address', 'post_at', 'created_at', 'updated_at', 'source_id', 'survey_id', 'latitude', 'longitude']]
 
 mapped.to_csv(path.join(environ['OUT_FILE_PATH'], environ['OUT_FILE_NAME']), index=False, header=False)
