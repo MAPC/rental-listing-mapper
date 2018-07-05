@@ -28,7 +28,7 @@ dtypes = {
 
 
 engine = sqlalchemy.create_engine('postgresql://{}:{}@{}:{}/{}'.format(environ['DB_USER'], environ['DB_PASSWORD'], environ['DB_HOST'], environ['DB_PORT'], environ['DB_NAME']))
-df = pd.read_sql_query(sqlalchemy.text("SELECT * FROM listings WHERE last_seen LIKE '2018-01%' OR last_seen LIKE '2018-02%' OR last_seen LIKE '2018-03%'"), engine)
+df = pd.read_sql_query(sqlalchemy.text("SELECT * FROM listings WHERE last_seen LIKE '2018-04%' OR last_seen LIKE '2018-05%' OR last_seen LIKE '2018-06%'"), engine)
 df.rename(columns={'posting_date': 'post_at'}, inplace=True)
 
 df = df.dropna(subset=['payload'])
