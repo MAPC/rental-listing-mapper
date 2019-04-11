@@ -3,6 +3,7 @@
 import json
 import sqlalchemy
 import pandas as pd
+from sys import exit
 from os import environ, path
 
 
@@ -31,13 +32,13 @@ if 'MAPPER_YEAR' in environ:
     year = int(environ['MAPPER_YEAR'])
 else:
     print("You must set MAPPER_YEAR in the environment")
-    return
+    exit(1)
 
 if 'MAPPER_QUARTER' in environ and int(environ['MAPPER_QUARTER']) in [1, 2, 3, 4]:
     quarter = int(environ['MAPPER_QUARTER'])
 else:
     print("You must set MAPPER_QUARTER in the environment, as 1, 2, 3, or 4")
-    return
+    exit(1)
 
 months = ['%d-%02d' % (year, i + ((quarter - 1) * 3)) for i in [1, 2, 3]]
 
