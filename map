@@ -27,8 +27,23 @@ dtypes = {
 }
 
 
+if 'MAPPER_YEAR' in environ:
+    year = int(environ['MAPPER_YEAR'])
+else:
+    print("You must set MAPPER_YEAR in the environment")
+    return
+
+if 'MAPPER_QUARTER' in environ and int(environ['MAPPER_QUARTER']) in [1, 2, 3, 4]:
+    quarter = int(environ['MAPPER_QUARTER'])
+else:
+    print("You must set MAPPER_QUARTER in the environment, as 1, 2, 3, or 4")
+    return
+
+months = ['%d-%02d' % (year, i + ((quarter - 1) * 3)) for i in [1, 2, 3]]
+
+
 engine = sqlalchemy.create_engine('postgresql://{}:{}@{}:{}/{}'.format(environ['DB_USER'], environ['DB_PASSWORD'], environ['DB_HOST'], environ['DB_PORT'], environ['DB_NAME']))
-df = pd.read_sql_query(sqlalchemy.text("SELECT * FROM listings WHERE last_seen LIKE '2019-01%' OR last_seen LIKE '2019-02%' OR last_seen LIKE '2019-03%'"), engine)
+df = pd.read_sql_query(sqlalchemy.text("SELECT * FROM listings WHERE last_seen LIKE '" + months[0] + "%' OR last_seen LIKE '" + months[1] + "%' OR last_seen LIKE '" + months[2] + "%'"), engine)
 df.rename(columns={'posting_date': 'post_at'}, inplace=True)
 
 df = df.dropna(subset=['payload'])
