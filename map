@@ -4,8 +4,11 @@ import json
 import sqlalchemy
 import pandas as pd
 from sys import exit
+# from dotenv import load_dotenv
 from os import environ, path
+from datetime import datetime
 
+# load_dotenv()
 
 def longmap(record):
     if 'lng' in record:
@@ -19,32 +22,27 @@ def latmap(record):
     else:
         return float(record['Latitude'])
 
+if 'MAPPER_YEAR' in environ:
+    YEAR = int(environ['MAPPER_YEAR'])
+else:
+    print("Using current year for YEAR")
+    YEAR = datetime.now().strftime('%Y')
 
-dtypes = {
-    'survey_id': int,
-    'payload': str,
-    'uid': str,
-    'last_seen': str,
+DATE_RANGES = {
+    1: '[{year}-01-01, {year}-03-31]'.format(year=YEAR),
+    2: '[{year}-04-01, {year}-06-30]'.format(year=YEAR),
+    3: '[{year}-07-01, {year}-09-30]'.format(year=YEAR),
+    4: '[{year}-10-01, {year}-12-31]'.format(year=YEAR)
 }
 
-
-if 'MAPPER_YEAR' in environ:
-    year = int(environ['MAPPER_YEAR'])
-else:
-    print("You must set MAPPER_YEAR in the environment")
-    exit(1)
-
 if 'MAPPER_QUARTER' in environ and int(environ['MAPPER_QUARTER']) in [1, 2, 3, 4]:
-    quarter = int(environ['MAPPER_QUARTER'])
+    RANGE = DATE_RANGES[int(environ['MAPPER_QUARTER'])]
 else:
-    print("You must set MAPPER_QUARTER in the environment, as 1, 2, 3, or 4")
-    exit(1)
-
-months = ['%d-%02d' % (year, i + ((quarter - 1) * 3)) for i in [1, 2, 3]]
-
+    print("Getting data from last month. Otherwise you must set MAPPER_QUARTER in the environment, as 1, 2, 3, or 4")
+    RANGE = '[{year}-{month}-01, {year}-{next_month}-01)'.format(year=YEAR, month=int(datetime.now().strftime('%m'))-1, next_month=datetime.now().strftime('%m'))
 
 engine = sqlalchemy.create_engine('postgresql://{}:{}@{}:{}/{}'.format(environ['DB_USER'], environ['DB_PASSWORD'], environ['DB_HOST'], environ['DB_PORT'], environ['DB_NAME']))
-df = pd.read_sql_query(sqlalchemy.text("SELECT * FROM listings WHERE last_seen LIKE '" + months[0] + "%' OR last_seen LIKE '" + months[1] + "%' OR last_seen LIKE '" + months[2] + "%'"), engine)
+df = pd.read_sql_query(sqlalchemy.text('SELECT * FROM listings WHERE \'{range}\'::daterange @> last_seen::date'.format(range=RANGE)), engine)
 df.rename(columns={'posting_date': 'post_at'}, inplace=True)
 
 df = df.dropna(subset=['payload'])
