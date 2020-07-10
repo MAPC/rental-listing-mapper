@@ -44,7 +44,7 @@ else:
     RANGE = '[{year}-{month}-01, {year}-{next_month}-01)'.format(year=YEAR, month=int(datetime.now().strftime('%m'))-1, next_month=datetime.now().strftime('%m'))
 
 engine = sqlalchemy.create_engine('postgresql://{}:{}@{}:{}/{}'.format(environ['DB_USER'], environ['DB_PASSWORD'], environ['DB_HOST'], environ['DB_PORT'], environ['DB_NAME']))
-df = pd.read_sql_query(sqlalchemy.text('SELECT * FROM listings WHERE \'{range}\'::daterange @> last_seen::date'.format(range=RANGE)), engine)
+df = pd.read_sql_query(sqlalchemy.text('SELECT * FROM listings WHERE \'{range}\'::tsrange @> last_seen'.format(range=RANGE)), engine)
 df.rename(columns={'posting_date': 'post_at'}, inplace=True)
 
 df = df.dropna(subset=['payload'])
