@@ -45,9 +45,9 @@ df = pd.read_sql_query(sqlalchemy.text('SELECT * FROM listings WHERE \'{range}\'
 df.rename(columns={'posting_date': 'post_at'}, inplace=True)
 
 df = df.dropna(subset=['payload'])
-df['longitude'] = df['payload'].apply(latmap)
-df = df[df['longitude'] > 37]
-df['latitude'] = df['payload'].apply(longmap)
+df['longitude'] = df['payload'].apply(longmap)
+df['latitude'] = df['payload'].apply(latmap)
+df = df[df['latitude'] > 37]
 
 mapped = df[['uid', 'ask', 'bedrooms', 'title', 'address', 'post_at', 'created_at', 'updated_at', 'source_id', 'survey_id', 'latitude', 'longitude']]
 
