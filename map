@@ -6,6 +6,8 @@ import pandas as pd
 from sys import exit
 from os import environ, path
 from datetime import datetime
+from datetime import date
+from dateutil.relativedelta import *
 
 def longmap(record):
     if 'lng' in record:
@@ -35,10 +37,18 @@ DATE_RANGES = {
 if 'MAPPER_QUARTER' in environ and int(environ['MAPPER_QUARTER']) in [1, 2, 3, 4]:
     RANGE = DATE_RANGES[int(environ['MAPPER_QUARTER'])]
 elif 'MAPPER_MONTH' in environ:
-    RANGE = '[{year}-{month}-01, {year}-{next_month}-01)'.format(year=YEAR, month=int(environ['MAPPER_MONTH']), next_month=int(environ['MAPPER_MONTH'])+1)
+    RANGE = '[{year}-{month}-01, {next_month}-01)'.format(
+        year=YEAR, 
+        month=int(environ['MAPPER_MONTH']),
+        next_month=(date(YEAR, int(environ['MAPPER_MONTH']), 1) + relativedelta(months=+1)).strftime("%Y-%m")
+    )
 else:
     print("Getting data from last month. Otherwise you must set MAPPER_QUARTER in the environment, as 1, 2, 3, or 4")
-    RANGE = '[{year}-{month}-01, {year}-{next_month}-01)'.format(year=YEAR, month=int(datetime.now().strftime('%m'))-1, next_month=datetime.now().strftime('%m'))
+    RANGE = '[{year}-{month}-01, {year}-{next_month}-01)'.format(
+        year=YEAR,
+        month=int(datetime.now().strftime('%m'))-1,
+        next_month=datetime.now().strftime('%m')
+    )
 
 engine = sqlalchemy.create_engine('postgresql://{}:{}@{}:{}/{}'.format(environ['DB_USER'], environ['DB_PASSWORD'], environ['DB_HOST'], environ['DB_PORT'], environ['DB_NAME']))
 df = pd.read_sql_query(sqlalchemy.text('SELECT * FROM listings WHERE \'{range}\'::tsrange @> last_seen'.format(range=RANGE)), engine)
