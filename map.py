@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 
 import json
-import sqlalchemy
-import pandas as pd
 from sys import exit
 from os import environ, path
 from datetime import datetime
 from datetime import date
 from dateutil.relativedelta import *
+
+import sqlalchemy
+import pandas as pd
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 def longmap(record):
     if 'lng' in record:
@@ -15,11 +20,13 @@ def longmap(record):
     else:
         return float(record['Longitude'])
 
+
 def latmap(record):
     if 'lat' in record:
         return float(record['lat'])
     else:
         return float(record['Latitude'])
+
 
 if 'MAPPER_YEAR' in environ:
     YEAR = int(environ['MAPPER_YEAR'])
@@ -50,8 +57,11 @@ else:
         next_month=datetime.now().strftime('%m')
     )
 
+print("Reading raw listings from DB...")
 engine = sqlalchemy.create_engine('postgresql://{}:{}@{}:{}/{}'.format(environ['DB_USER'], environ['DB_PASSWORD'], environ['DB_HOST'], environ['DB_PORT'], environ['DB_NAME']))
 df = pd.read_sql_query(sqlalchemy.text('SELECT * FROM listings WHERE \'{range}\'::tsrange @> last_seen'.format(range=RANGE)), engine)
+
+print("Mapping data to output format...")
 df.rename(columns={'posting_date': 'post_at'}, inplace=True)
 
 df = df.dropna(subset=['payload'])
@@ -61,4 +71,9 @@ df = df[df['latitude'] > 37]
 
 mapped = df[['uid', 'ask', 'bedrooms', 'title', 'address', 'post_at', 'created_at', 'updated_at', 'source_id', 'survey_id', 'latitude', 'longitude']]
 
+print(f"Writing to {environ['OUT_FILE_PATH']}{environ['OUT_FILE_NAME']}...")
 mapped.to_csv(path.join(environ['OUT_FILE_PATH'], environ['OUT_FILE_NAME']), index=False, header=False)
+print(f"Writing to {environ['OUT_TABLE_NAME']} table...")
+mapped.to_sql(environ['OUT_TABLE_NAME'], engine, if_exists='append', index=False, chunksize=1000)
+
+print("Done.")

@@ -1,2 +1,5 @@
 .DS_Store
 .env
+
+virtualenv_*
+output/**
